@@ -1,0 +1,75 @@
+library(rcompanion)
+#positive Skew
+s<-c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,5)
+skewness(s)
+plotNormalHistogram(s)
+---------------------------------------------
+#negative Skew
+m<-c(5,5,5,5,5,5,5,5,5,5,5,5,5,5,1,2,3,4)
+skewness(m)
+plotNormalHistogram(m)
+-----------------------------------------------
+#0 Skew
+m<-c(1,2,3,4,5,6,7,8,9,10)
+skewness(m)
+plotNormalHistogram(m)
+------------------------------------------------
+
+#Sqaure root normalization
+t<-c(1:20)
+sq<-sqrt(t)
+plotNormalHistogram(sq)
+par(mfrow=c(1,2))
+hist(t, breaks=10, xlab="Data", col="lightblue", main="")
+hist(sq, breaks=10, xlab="Normalized Data", col="lightblue", main="")
+sq
+------------------------------------------------------------
+#cubic Root Normalization
+tc<-sign(t)*abs(t)^1/3
+plotNormalHistogram(tc)
+par(mfrow=c(1,2))
+hist(t, breaks=10, xlab="Data", col="lightblue", main="")
+hist(tc, breaks=10, xlab="Normalized Data", col="lightblue", main="")
+tc 
+----------------------------------------------------------------
+#log Normalization
+tl<-log(t)
+plotNormalHistogram(tl)
+par(mfrow=c(1,2))
+hist(t, breaks=10, xlab="Data", col="lightblue", main="")
+hist(tl, breaks=10, xlab="Normalized Data", col="lightblue", main="")
+tl
+------------------------------------------------------------
+#min-max Normalization
+n<-(t-min(t))/(max(t)-min(t))
+par(mfrow=c(1,2))
+n
+hist(t, breaks=10, xlab="Data", col="lightblue", main="")
+hist(n, breaks=10, xlab="Normalized Data", col="lightblue", main="")
+-----------------------------------------------------------------
+
+#Zscore Normalization
+sd1<-sd(t)*sqrt((length(t)-1)/(length(t)))
+m<-mean(t)
+z<-(t-m)/sd1
+z
+par(mfrow=c(1,2))
+hist(t, breaks=10, xlab="Data", col="lightblue", main="")
+hist(z, breaks=10, xlab="Normalized Data", col="lightblue", main="")
+------------------------------------------------------------------------
+#Decimal Scaling Normalization
+m<-max(abs(t))
+c<-0
+while(m>0)
+{
+  c<-c+1
+  m<-round(m/10)
+}
+dc<-t/(10^c)
+par(mfrow=c(1,2))
+hist(t, breaks=10, xlab="Data", col="lightblue", main="")
+hist(dc, breaks=10, xlab="Normalized Data", col="lightblue", main="")
+
+
+
+ 

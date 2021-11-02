@@ -1,0 +1,653 @@
+ x<-c(1,2,3,4,5,6,7,8,9,10)
+> y<-c(11,12,18,14,17,NA,NA,19,NA,27)
+> z<-c(19,11,2,14,20,4,9,10,18,1)
+> w<-c(1,4,7,10,3,5,7,6,6,9)
+> data<-data.frame(x,y,z,w)
+> cor(data)
+           x  y          z          w
+x  1.0000000 NA -0.2736766  0.5029477
+y         NA  1         NA         NA
+z -0.2736766 NA  1.0000000 -0.5276512
+w  0.5029477 NA -0.5276512  1.0000000
+> cor(data,use="complete.obs")
+           x          y          z          w
+x  1.0000000  0.9088508 -0.4794970  0.5427928
+y  0.9088508  1.0000000 -0.6931033  0.5575189
+z -0.4794970 -0.6931033  1.0000000 -0.6438960
+w  0.5427928  0.5575189 -0.6438960  1.0000000
+> Ind<-function(t)
++ {
++   x<-dim(length(t))
++   x[which(!is.na(t))]=1
++   x[which(is.na(t))]=0
++   return(x)
++ }
+> data$I<-Ind(data$y)
+> lm(y~x,data=data)
+
+Call:
+lm(formula = y ~ x, data = data)
+
+Coefficients:
+(Intercept)            x  
+      9.743        1.509  
+
+> 
+> for(i in 1:nrow(data))
++ {
++   if(data$I[i]==0)
++   {
++     data$y[i]=9.743+1.509*data$x[i]
++   }
++ }
+> 
+> library(mice)
+> library(VIM)
+> library(lattice)
+> library(ggplot2)
+> anscombe<-within(anscombe,{
++   y1[1:3]<-NA 
++   y4[3:5]<-NA
++ })
+> anscombe
+   x1 x2 x3 x4    y1   y2    y3    y4
+1  10 10 10  8    NA 9.14  7.46  6.58
+2   8  8  8  8    NA 8.14  6.77  5.76
+3  13 13 13  8    NA 8.74 12.74    NA
+4   9  9  9  8  8.81 8.77  7.11    NA
+5  11 11 11  8  8.33 9.26  7.81    NA
+6  14 14 14  8  9.96 8.10  8.84  7.04
+7   6  6  6  8  7.24 6.13  6.08  5.25
+8   4  4  4 19  4.26 3.10  5.39 12.50
+9  12 12 12  8 10.84 9.13  8.15  5.56
+10  7  7  7  8  4.82 7.26  6.42  7.91
+11  5  5  5  8  5.68 4.74  5.73  6.89
+> md.pattern(anscombe)
+  x1 x2 x3 x4 y2 y3 y1 y4  
+6  1  1  1  1  1  1  1  1 0
+2  1  1  1  1  1  1  1  0 1
+2  1  1  1  1  1  1  0  1 1
+1  1  1  1  1  1  1  0  0 2
+   0  0  0  0  0  0  3  3 6
+> p<-md.pairs(anscombe)
+> p
+$rr
+   x1 x2 x3 x4 y1 y2 y3 y4
+x1 11 11 11 11  8 11 11  8
+x2 11 11 11 11  8 11 11  8
+x3 11 11 11 11  8 11 11  8
+x4 11 11 11 11  8 11 11  8
+y1  8  8  8  8  8  8  8  6
+y2 11 11 11 11  8 11 11  8
+y3 11 11 11 11  8 11 11  8
+y4  8  8  8  8  6  8  8  8
+
+$rm
+   x1 x2 x3 x4 y1 y2 y3 y4
+x1  0  0  0  0  3  0  0  3
+x2  0  0  0  0  3  0  0  3
+x3  0  0  0  0  3  0  0  3
+x4  0  0  0  0  3  0  0  3
+y1  0  0  0  0  0  0  0  2
+y2  0  0  0  0  3  0  0  3
+y3  0  0  0  0  3  0  0  3
+y4  0  0  0  0  2  0  0  0
+
+$mr
+   x1 x2 x3 x4 y1 y2 y3 y4
+x1  0  0  0  0  0  0  0  0
+x2  0  0  0  0  0  0  0  0
+x3  0  0  0  0  0  0  0  0
+x4  0  0  0  0  0  0  0  0
+y1  3  3  3  3  0  3  3  2
+y2  0  0  0  0  0  0  0  0
+y3  0  0  0  0  0  0  0  0
+y4  3  3  3  3  2  3  3  0
+
+$mm
+   x1 x2 x3 x4 y1 y2 y3 y4
+x1  0  0  0  0  0  0  0  0
+x2  0  0  0  0  0  0  0  0
+x3  0  0  0  0  0  0  0  0
+x4  0  0  0  0  0  0  0  0
+y1  0  0  0  0  3  0  0  1
+y2  0  0  0  0  0  0  0  0
+y3  0  0  0  0  0  0  0  0
+y4  0  0  0  0  1  0  0  3
+
+> #rr - number of observations where both pairs of values observed
+> #rm - number of observations where both variables are missing values
+> #mr - number of observations where the 
+> #first variable's value (row) is observed and
+> #second variable's value is missing
+> #mm - just the opposite of mr
+> marginplot(anscombe[c(5,8)],col=c("blue","red","orange"))
+> 
+> pbox(anscombe, pos = 2)
+Warning message:
+In createPlot(main, sub, xlab, ylab, labels, ca$at) :
+  not enough space to display frequencies
+> imp1 <- mice(anscombe, method = "norm.predict", m = 1)
+
+ iter imp variable
+  1   1  y1  y4
+  2   1  y1  y4
+  3   1  y1  y4
+  4   1  y1  y4
+  5   1  y1  y4
+Warning message:
+Number of logged events: 12 
+> ans<-complete(imp1)
+> library(mice)
+> 
+> #Loading the following package for looking at the missing values
+> library(VIM)
+> library(lattice)
+> data(nhanes)
+> 
+> # First look at the data
+> str(nhanes)
+'data.frame':	25 obs. of  4 variables:
+ $ age: num  1 2 1 3 1 3 1 1 2 2 ...
+ $ bmi: num  NA 22.7 NA NA 20.4 NA 22.5 30.1 22 NA ...
+ $ hyp: num  NA 1 1 NA 1 NA 1 1 1 NA ...
+ $ chl: num  NA 187 187 NA 113 184 118 187 238 NA ...
+> 
+> #Convert Age to factor
+> nhanes$age=as.factor(nhanes$age)
+> 
+> #understand the missing value pattern
+> md.pattern(nhanes)
+   age hyp bmi chl   
+13   1   1   1   1  0
+3    1   1   1   0  1
+1    1   1   0   1  1
+1    1   0   0   1  2
+7    1   0   0   0  3
+     0   8   9  10 27
+> 
+> #plot the missing values
+> nhanes_miss = aggr(nhanes, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(nhanes), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
+
+ Variables sorted by number of missings: 
+ Variable Count
+      chl  0.40
+      bmi  0.36
+      hyp  0.32
+      age  0.00
+> 
+> #Drawing margin plot
+> marginplot(nhanes[, c("chl", "bmi")], col = mdc(1:2), cex.numbers = 1.2, pch = 19)
+> 
+> #Imputing missing values using mice
+> mice_imputes = mice(nhanes, m=5, maxit = 40)
+
+ iter imp variable
+  1   1  bmi  hyp  chl
+  1   2  bmi  hyp  chl
+  1   3  bmi  hyp  chl
+  1   4  bmi  hyp  chl
+  1   5  bmi  hyp  chl
+  2   1  bmi  hyp  chl
+  2   2  bmi  hyp  chl
+  2   3  bmi  hyp  chl
+  2   4  bmi  hyp  chl
+  2   5  bmi  hyp  chl
+  3   1  bmi  hyp  chl
+  3   2  bmi  hyp  chl
+  3   3  bmi  hyp  chl
+  3   4  bmi  hyp  chl
+  3   5  bmi  hyp  chl
+  4   1  bmi  hyp  chl
+  4   2  bmi  hyp  chl
+  4   3  bmi  hyp  chl
+  4   4  bmi  hyp  chl
+  4   5  bmi  hyp  chl
+  5   1  bmi  hyp  chl
+  5   2  bmi  hyp  chl
+  5   3  bmi  hyp  chl
+  5   4  bmi  hyp  chl
+  5   5  bmi  hyp  chl
+  6   1  bmi  hyp  chl
+  6   2  bmi  hyp  chl
+  6   3  bmi  hyp  chl
+  6   4  bmi  hyp  chl
+  6   5  bmi  hyp  chl
+  7   1  bmi  hyp  chl
+  7   2  bmi  hyp  chl
+  7   3  bmi  hyp  chl
+  7   4  bmi  hyp  chl
+  7   5  bmi  hyp  chl
+  8   1  bmi  hyp  chl
+  8   2  bmi  hyp  chl
+  8   3  bmi  hyp  chl
+  8   4  bmi  hyp  chl
+  8   5  bmi  hyp  chl
+  9   1  bmi  hyp  chl
+  9   2  bmi  hyp  chl
+  9   3  bmi  hyp  chl
+  9   4  bmi  hyp  chl
+  9   5  bmi  hyp  chl
+  10   1  bmi  hyp  chl
+  10   2  bmi  hyp  chl
+  10   3  bmi  hyp  chl
+  10   4  bmi  hyp  chl
+  10   5  bmi  hyp  chl
+  11   1  bmi  hyp  chl
+  11   2  bmi  hyp  chl
+  11   3  bmi  hyp  chl
+  11   4  bmi  hyp  chl
+  11   5  bmi  hyp  chl
+  12   1  bmi  hyp  chl
+  12   2  bmi  hyp  chl
+  12   3  bmi  hyp  chl
+  12   4  bmi  hyp  chl
+  12   5  bmi  hyp  chl
+  13   1  bmi  hyp  chl
+  13   2  bmi  hyp  chl
+  13   3  bmi  hyp  chl
+  13   4  bmi  hyp  chl
+  13   5  bmi  hyp  chl
+  14   1  bmi  hyp  chl
+  14   2  bmi  hyp  chl
+  14   3  bmi  hyp  chl
+  14   4  bmi  hyp  chl
+  14   5  bmi  hyp  chl
+  15   1  bmi  hyp  chl
+  15   2  bmi  hyp  chl
+  15   3  bmi  hyp  chl
+  15   4  bmi  hyp  chl
+  15   5  bmi  hyp  chl
+  16   1  bmi  hyp  chl
+  16   2  bmi  hyp  chl
+  16   3  bmi  hyp  chl
+  16   4  bmi  hyp  chl
+  16   5  bmi  hyp  chl
+  17   1  bmi  hyp  chl
+  17   2  bmi  hyp  chl
+  17   3  bmi  hyp  chl
+  17   4  bmi  hyp  chl
+  17   5  bmi  hyp  chl
+  18   1  bmi  hyp  chl
+  18   2  bmi  hyp  chl
+  18   3  bmi  hyp  chl
+  18   4  bmi  hyp  chl
+  18   5  bmi  hyp  chl
+  19   1  bmi  hyp  chl
+  19   2  bmi  hyp  chl
+  19   3  bmi  hyp  chl
+  19   4  bmi  hyp  chl
+  19   5  bmi  hyp  chl
+  20   1  bmi  hyp  chl
+  20   2  bmi  hyp  chl
+  20   3  bmi  hyp  chl
+  20   4  bmi  hyp  chl
+  20   5  bmi  hyp  chl
+  21   1  bmi  hyp  chl
+  21   2  bmi  hyp  chl
+  21   3  bmi  hyp  chl
+  21   4  bmi  hyp  chl
+  21   5  bmi  hyp  chl
+  22   1  bmi  hyp  chl
+  22   2  bmi  hyp  chl
+  22   3  bmi  hyp  chl
+  22   4  bmi  hyp  chl
+  22   5  bmi  hyp  chl
+  23   1  bmi  hyp  chl
+  23   2  bmi  hyp  chl
+  23   3  bmi  hyp  chl
+  23   4  bmi  hyp  chl
+  23   5  bmi  hyp  chl
+  24   1  bmi  hyp  chl
+  24   2  bmi  hyp  chl
+  24   3  bmi  hyp  chl
+  24   4  bmi  hyp  chl
+  24   5  bmi  hyp  chl
+  25   1  bmi  hyp  chl
+  25   2  bmi  hyp  chl
+  25   3  bmi  hyp  chl
+  25   4  bmi  hyp  chl
+  25   5  bmi  hyp  chl
+  26   1  bmi  hyp  chl
+  26   2  bmi  hyp  chl
+  26   3  bmi  hyp  chl
+  26   4  bmi  hyp  chl
+  26   5  bmi  hyp  chl
+  27   1  bmi  hyp  chl
+  27   2  bmi  hyp  chl
+  27   3  bmi  hyp  chl
+  27   4  bmi  hyp  chl
+  27   5  bmi  hyp  chl
+  28   1  bmi  hyp  chl
+  28   2  bmi  hyp  chl
+  28   3  bmi  hyp  chl
+  28   4  bmi  hyp  chl
+  28   5  bmi  hyp  chl
+  29   1  bmi  hyp  chl
+  29   2  bmi  hyp  chl
+  29   3  bmi  hyp  chl
+  29   4  bmi  hyp  chl
+  29   5  bmi  hyp  chl
+  30   1  bmi  hyp  chl
+  30   2  bmi  hyp  chl
+  30   3  bmi  hyp  chl
+  30   4  bmi  hyp  chl
+  30   5  bmi  hyp  chl
+  31   1  bmi  hyp  chl
+  31   2  bmi  hyp  chl
+  31   3  bmi  hyp  chl
+  31   4  bmi  hyp  chl
+  31   5  bmi  hyp  chl
+  32   1  bmi  hyp  chl
+  32   2  bmi  hyp  chl
+  32   3  bmi  hyp  chl
+  32   4  bmi  hyp  chl
+  32   5  bmi  hyp  chl
+  33   1  bmi  hyp  chl
+  33   2  bmi  hyp  chl
+  33   3  bmi  hyp  chl
+  33   4  bmi  hyp  chl
+  33   5  bmi  hyp  chl
+  34   1  bmi  hyp  chl
+  34   2  bmi  hyp  chl
+  34   3  bmi  hyp  chl
+  34   4  bmi  hyp  chl
+  34   5  bmi  hyp  chl
+  35   1  bmi  hyp  chl
+  35   2  bmi  hyp  chl
+  35   3  bmi  hyp  chl
+  35   4  bmi  hyp  chl
+  35   5  bmi  hyp  chl
+  36   1  bmi  hyp  chl
+  36   2  bmi  hyp  chl
+  36   3  bmi  hyp  chl
+  36   4  bmi  hyp  chl
+  36   5  bmi  hyp  chl
+  37   1  bmi  hyp  chl
+  37   2  bmi  hyp  chl
+  37   3  bmi  hyp  chl
+  37   4  bmi  hyp  chl
+  37   5  bmi  hyp  chl
+  38   1  bmi  hyp  chl
+  38   2  bmi  hyp  chl
+  38   3  bmi  hyp  chl
+  38   4  bmi  hyp  chl
+  38   5  bmi  hyp  chl
+  39   1  bmi  hyp  chl
+  39   2  bmi  hyp  chl
+  39   3  bmi  hyp  chl
+  39   4  bmi  hyp  chl
+  39   5  bmi  hyp  chl
+  40   1  bmi  hyp  chl
+  40   2  bmi  hyp  chl
+  40   3  bmi  hyp  chl
+  40   4  bmi  hyp  chl
+  40   5  bmi  hyp  chl
+> 
+> #What methods were used for imputing
+> mice_imputes$method
+  age   bmi   hyp   chl 
+   "" "pmm" "pmm" "pmm" 
+> 
+> mice_imputes$imp$chl
+     1   2   3   4   5
+1  187 187 186 238 187
+4  187 186 204 284 218
+10 218 187 187 131 187
+11 199 187 187 238 118
+12 199 199 131 199 199
+15 186 131 131 238 199
+16 238 186 206 187 131
+20 199 204 186 229 206
+21 187 199 238 186 199
+24 229 218 284 284 206
+> 
+> #Imputed dataset
+> Imputed_data=complete(mice_imputes,5)
+> 
+> #Plotting and comparing values with xyplot()
+> xyplot(mice_imputes, bmi ~ chl | .imp, pch = 20, cex = 1.4)
+> 
+> #make a density plot
+> densityplot(mice_imputes)
+> 
+> #fit a linear model on all datasets together
+> lm_5_model=with(mice_imputes,lm(chl~age+bmi+hyp))
+> 
+> par(ask=TRUE)
+> 
+> # load the dataset
+> data(sleep, package="VIM")
+> 
+> # list the rows that do not have missing values
+> sleep[complete.cases(sleep),]
+    BodyWgt BrainWgt NonD Dream Sleep  Span  Gest Pred Exp Danger
+2     1.000     6.60  6.3   2.0   8.3   4.5  42.0    3   1      3
+5  2547.000  4603.00  2.1   1.8   3.9  69.0 624.0    3   5      4
+6    10.550   179.50  9.1   0.7   9.8  27.0 180.0    4   4      4
+7     0.023     0.30 15.8   3.9  19.7  19.0  35.0    1   1      1
+8   160.000   169.00  5.2   1.0   6.2  30.4 392.0    4   5      4
+9     3.300    25.60 10.9   3.6  14.5  28.0  63.0    1   2      1
+10   52.160   440.00  8.3   1.4   9.7  50.0 230.0    1   1      1
+11    0.425     6.40 11.0   1.5  12.5   7.0 112.0    5   4      4
+12  465.000   423.00  3.2   0.7   3.9  30.0 281.0    5   5      5
+15    0.075     1.20  6.3   2.1   8.4   3.5  42.0    1   1      1
+16    3.000    25.00  8.6   0.0   8.6  50.0  28.0    2   2      2
+17    0.785     3.50  6.6   4.1  10.7   6.0  42.0    2   2      2
+18    0.200     5.00  9.5   1.2  10.7  10.4 120.0    2   2      2
+22   27.660   115.00  3.3   0.5   3.8  20.0 148.0    5   5      5
+23    0.120     1.00 11.0   3.4  14.4   3.9  16.0    3   1      2
+25   85.000   325.00  4.7   1.5   6.2  41.0 310.0    1   3      1
+27    0.101     4.00 10.4   3.4  13.8   9.0  28.0    5   1      3
+28    1.040     5.50  7.4   0.8   8.2   7.6  68.0    5   3      4
+29  521.000   655.00  2.1   0.8   2.9  46.0 336.0    5   5      5
+32    0.005     0.14  7.7   1.4   9.1   2.6  21.5    5   2      4
+33    0.010     0.25 17.9   2.0  19.9  24.0  50.0    1   1      1
+34   62.000  1320.00  6.1   1.9   8.0 100.0 267.0    1   1      1
+37    0.023     0.40 11.9   1.3  13.2   3.2  19.0    4   1      3
+38    0.048     0.33 10.8   2.0  12.8   2.0  30.0    4   1      3
+39    1.700     6.30 13.8   5.6  19.4   5.0  12.0    2   1      1
+40    3.500    10.80 14.3   3.1  17.4   6.5 120.0    2   1      1
+42    0.480    15.50 15.2   1.8  17.0  12.0 140.0    2   2      2
+43   10.000   115.00 10.0   0.9  10.9  20.2 170.0    4   4      4
+44    1.620    11.40 11.9   1.8  13.7  13.0  17.0    2   1      2
+45  192.000   180.00  6.5   1.9   8.4  27.0 115.0    4   4      4
+46    2.500    12.10  7.5   0.9   8.4  18.0  31.0    5   5      5
+48    0.280     1.90 10.6   2.6  13.2   4.7  21.0    3   1      3
+49    4.235    50.40  7.4   2.4   9.8   9.8  52.0    1   1      1
+50    6.800   179.00  8.4   1.2   9.6  29.0 164.0    2   3      2
+51    0.750    12.30  5.7   0.9   6.6   7.0 225.0    2   2      2
+52    3.600    21.00  4.9   0.5   5.4   6.0 225.0    3   2      3
+54   55.500   175.00  3.2   0.6   3.8  20.0 151.0    5   5      5
+57    0.900     2.60 11.0   2.3  13.3   4.5  60.0    2   1      2
+58    2.000    12.30  4.9   0.5   5.4   7.5 200.0    3   1      3
+59    0.104     2.50 13.2   2.6  15.8   2.3  46.0    3   2      2
+60    4.190    58.00  9.7   0.6  10.3  24.0 210.0    4   3      4
+61    3.500     3.90 12.8   6.6  19.4   3.0  14.0    2   1      1
+> 
+> # list the rows that have one or more missing values
+> sleep[!complete.cases(sleep),]
+    BodyWgt BrainWgt NonD Dream Sleep Span Gest Pred Exp Danger
+1  6654.000   5712.0   NA    NA   3.3 38.6  645    3   5      3
+3     3.385     44.5   NA    NA  12.5 14.0   60    1   1      1
+4     0.920      5.7   NA    NA  16.5   NA   25    5   2      3
+13    0.550      2.4  7.6   2.7  10.3   NA   NA    2   1      2
+14  187.100    419.0   NA    NA   3.1 40.0  365    5   5      5
+19    1.410     17.5  4.8   1.3   6.1 34.0   NA    1   2      1
+20   60.000     81.0 12.0   6.1  18.1  7.0   NA    1   1      1
+21  529.000    680.0   NA   0.3    NA 28.0  400    5   5      5
+24  207.000    406.0   NA    NA  12.0 39.3  252    1   4      1
+26   36.330    119.5   NA    NA  13.0 16.2   63    1   1      1
+30  100.000    157.0   NA    NA  10.8 22.4  100    1   1      1
+31   35.000     56.0   NA    NA    NA 16.3   33    3   5      4
+35    0.122      3.0  8.2   2.4  10.6   NA   30    2   1      1
+36    1.350      8.1  8.4   2.8  11.2   NA   45    3   1      3
+41  250.000    490.0   NA   1.0    NA 23.6  440    5   5      5
+47    4.288     39.2   NA    NA  12.5 13.7   63    2   2      2
+53   14.830     98.2   NA    NA   2.6 17.0  150    5   5      5
+55    1.400     12.5   NA    NA  11.0 12.7   90    2   2      2
+56    0.060      1.0  8.1   2.2  10.3  3.5   NA    3   1      2
+62    4.050     17.0   NA    NA    NA 13.0   38    3   1      1
+> 
+> # tabulate missing values patters
+> library(mice)
+> md.pattern(sleep)
+Hit <Return> to see next plot: 
+   BodyWgt BrainWgt Pred Exp Danger Sleep Span Gest Dream NonD   
+42       1        1    1   1      1     1    1    1     1    1  0
+9        1        1    1   1      1     1    1    1     0    0  2
+3        1        1    1   1      1     1    1    0     1    1  1
+2        1        1    1   1      1     1    0    1     1    1  1
+1        1        1    1   1      1     1    0    1     0    0  3
+1        1        1    1   1      1     1    0    0     1    1  2
+2        1        1    1   1      1     0    1    1     1    0  2
+2        1        1    1   1      1     0    1    1     0    0  3
+         0        0    0   0      0     4    4    4    12   14 38
+> # plot missing values patterns
+> library("VIM")
+> aggr(sleep, prop=FALSE, numbers=TRUE)
+Hit <Return> to see next plot: matrixplot(sleep)
+> marginplot(sleep[c("Gest","Dream")], pch=c(20), 
++            col=c("darkgray", "red", "blue"))
+Hit <Return> to see next plot: 
+> # use correlations to explore missing values
+> x <- as.data.frame(abs(is.na(sleep)))
+> head(sleep, n=5)
+   BodyWgt BrainWgt NonD Dream Sleep Span Gest Pred Exp Danger
+1 6654.000   5712.0   NA    NA   3.3 38.6  645    3   5      3
+2    1.000      6.6  6.3   2.0   8.3  4.5   42    3   1      3
+3    3.385     44.5   NA    NA  12.5 14.0   60    1   1      1
+4    0.920      5.7   NA    NA  16.5   NA   25    5   2      3
+5 2547.000   4603.0  2.1   1.8   3.9 69.0  624    3   5      4
+> head(x, n=5)
+  BodyWgt BrainWgt NonD Dream Sleep Span Gest Pred Exp Danger
+1       0        0    1     1     0    0    0    0   0      0
+2       0        0    0     0     0    0    0    0   0      0
+3       0        0    1     1     0    0    0    0   0      0
+4       0        0    1     1     0    1    0    0   0      0
+5       0        0    0     0     0    0    0    0   0      0
+> y <- x[which(apply(x,2,sum)>0)]
+> cor(y)
+             NonD       Dream       Sleep        Span        Gest
+NonD   1.00000000  0.90711474  0.48626454  0.01519577 -0.14182716
+Dream  0.90711474  1.00000000  0.20370138  0.03752394 -0.12865350
+Sleep  0.48626454  0.20370138  1.00000000 -0.06896552 -0.06896552
+Span   0.01519577  0.03752394 -0.06896552  1.00000000  0.19827586
+Gest  -0.14182716 -0.12865350 -0.06896552  0.19827586  1.00000000
+> cor(sleep, y, use="pairwise.complete.obs")
+                NonD       Dream        Sleep        Span        Gest
+BodyWgt   0.22682614  0.22259108  0.001684992 -0.05831706 -0.05396818
+BrainWgt  0.17945923  0.16321105  0.007859438 -0.07921370 -0.07332961
+NonD              NA          NA           NA -0.04314514 -0.04553485
+Dream    -0.18895206          NA -0.188952059  0.11699247  0.22774685
+Sleep    -0.08023157 -0.08023157           NA  0.09638044  0.03976464
+Span      0.08336361  0.05981377  0.005238852          NA -0.06527277
+Gest      0.20239201  0.05140232  0.159701523 -0.17495305          NA
+Pred      0.04758438 -0.06834378  0.202462711  0.02313860 -0.20101655
+Exp       0.24546836  0.12740768  0.260772984 -0.19291879 -0.19291879
+Danger    0.06528387 -0.06724755  0.208883617 -0.06666498 -0.20443928
+Warning message:
+In cor(sleep, y, use = "pairwise.complete.obs") :
+  the standard deviation is zero
+> 
+> # complete case analysis (listwise deletion)
+> options(digits=1)
+> cor(na.omit(sleep))
+         BodyWgt BrainWgt NonD Dream Sleep  Span  Gest  Pred  Exp Danger
+BodyWgt     1.00     0.96 -0.4 -0.07  -0.3  0.47  0.71  0.10  0.4   0.26
+BrainWgt    0.96     1.00 -0.4 -0.07  -0.3  0.63  0.73 -0.02  0.3   0.15
+NonD       -0.39    -0.39  1.0  0.52   1.0 -0.37 -0.61 -0.35 -0.6  -0.53
+Dream      -0.07    -0.07  0.5  1.00   0.7 -0.27 -0.41 -0.40 -0.5  -0.57
+Sleep      -0.34    -0.34  1.0  0.72   1.0 -0.38 -0.61 -0.40 -0.6  -0.60
+Span        0.47     0.63 -0.4 -0.27  -0.4  1.00  0.65 -0.17  0.3   0.01
+Gest        0.71     0.73 -0.6 -0.41  -0.6  0.65  1.00  0.09  0.6   0.31
+Pred        0.10    -0.02 -0.4 -0.40  -0.4 -0.17  0.09  1.00  0.6   0.93
+Exp         0.41     0.32 -0.6 -0.50  -0.6  0.32  0.57  0.63  1.0   0.79
+Danger      0.26     0.15 -0.5 -0.57  -0.6  0.01  0.31  0.93  0.8   1.00
+> fit <- lm(Dream ~ Span + Gest, data=na.omit(sleep))
+> summary(fit)
+
+Call:
+lm(formula = Dream ~ Span + Gest, data = na.omit(sleep))
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-2.333 -0.915 -0.221  0.382  4.183 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  2.480122   0.298476    8.31  3.7e-10 ***
+Span        -0.000472   0.013130   -0.04    0.971    
+Gest        -0.004394   0.002081   -2.11    0.041 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1 on 39 degrees of freedom
+Multiple R-squared:  0.167,	Adjusted R-squared:  0.125 
+F-statistic: 3.92 on 2 and 39 DF,  p-value: 0.0282
+
+> 
+> # multiple imputation
+> options(digits=3)
+> library(mice)
+> data(sleep, package="VIM")
+> imp <- mice(sleep, seed=1234)
+
+ iter imp variable
+  1   1  NonD  Dream  Sleep  Span  Gest
+  1   2  NonD  Dream  Sleep  Span  Gest
+  1   3  NonD  Dream  Sleep  Span  Gest
+  1   4  NonD  Dream  Sleep  Span  Gest
+  1   5  NonD  Dream  Sleep  Span  Gest
+  2   1  NonD  Dream  Sleep  Span  Gest
+  2   2  NonD  Dream  Sleep  Span  Gest
+  2   3  NonD  Dream  Sleep  Span  Gest
+  2   4  NonD  Dream  Sleep  Span  Gest
+  2   5  NonD  Dream  Sleep  Span  Gest
+  3   1  NonD  Dream  Sleep  Span  Gest
+  3   2  NonD  Dream  Sleep  Span  Gest
+  3   3  NonD  Dream  Sleep  Span  Gest
+  3   4  NonD  Dream  Sleep  Span  Gest
+  3   5  NonD  Dream  Sleep  Span  Gest
+  4   1  NonD  Dream  Sleep  Span  Gest
+  4   2  NonD  Dream  Sleep  Span  Gest
+  4   3  NonD  Dream  Sleep  Span  Gest
+  4   4  NonD  Dream  Sleep  Span  Gest
+  4   5  NonD  Dream  Sleep  Span  Gest
+  5   1  NonD  Dream  Sleep  Span  Gest
+  5   2  NonD  Dream  Sleep  Span  Gest
+  5   3  NonD  Dream  Sleep  Span  Gest
+  5   4  NonD  Dream  Sleep  Span  Gest
+  5   5  NonD  Dream  Sleep  Span  Gest
+Warning message:
+Number of logged events: 5 
+> fit <- with(imp, lm(Dream ~ Span + Gest))
+> pooled <- pool(fit)
+> summary(pooled)
+         term estimate std.error statistic   df  p.value
+1 (Intercept)  2.59669   0.24861    10.445 52.0 2.29e-14
+2        Span -0.00399   0.01169    -0.342 55.6 7.34e-01
+3        Gest -0.00432   0.00146    -2.961 55.2 4.52e-03
+> imp
+Class: mids
+Number of multiple imputations:  5 
+Imputation methods:
+ BodyWgt BrainWgt     NonD    Dream    Sleep     Span     Gest     Pred      Exp 
+      ""       ""    "pmm"    "pmm"    "pmm"    "pmm"    "pmm"       ""       "" 
+  Danger 
+      "" 
+PredictorMatrix:
+         BodyWgt BrainWgt NonD Dream Sleep Span Gest Pred Exp Danger
+BodyWgt        0        1    1     1     1    1    1    1   1      1
+BrainWgt       1        0    1     1     1    1    1    1   1      1
+NonD           1        1    0     1     1    1    1    1   1      1
+Dream          1        1    1     0     1    1    1    1   1      1
+Sleep          1        1    1     1     0    1    1    1   1      1
+Span           1        1    1     1     1    0    1    1   1      1
+Number of logged events:  5 
+  it im  dep meth   out
+1  3  2 Span  pmm Sleep
+2  3  2 Gest  pmm Sleep
+3  4  2 Span  pmm Sleep
+4  4  2 Gest  pmm Sleep
+5  4  4 Span  pmm Sleep
